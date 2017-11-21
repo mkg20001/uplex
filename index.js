@@ -14,7 +14,6 @@ const log = debug("uplex")
 const looper = require("pull-looper")
 
 const GUESS = 10000000000 //just a random number I guess is high enough to never collide. additionally the id-seed gets adjusted if a collision is near
-const EMPTY_BUF = Buffer.from("")
 
 const Pushable = require("pull-pushable")
 
@@ -179,8 +178,6 @@ class Uplex extends EE {
   }
 
   pushOut(id, state, data) {
-    if (!data) data = EMPTY_BUF
-    log(id, state, data)
     this._push({id, state, data})
   }
 }

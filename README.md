@@ -31,19 +31,19 @@ So... why not make a simple pull-stream first, protocol-buffers, double-side mul
 `.on('conn', conn => {})`:
   - Event that gets emitted when the other side creates a duplex
 
-# Benchmarks (run `node bench`)
-Small chunks:
+# Benchmarks (run `node bench && TINY_CHUNKS=1 node bench`)
+Big chunks:
 ```
-Muxer#spdy x 8.12 ops/sec ±1.68% (42 runs sampled)
-Muxer#multiplex x 6.30 ops/sec ±3.94% (34 runs sampled)
-Muxer#uplex x 12.25 ops/sec ±1.18% (34 runs sampled)
+Muxer#spdy x 8.45 ops/sec ±1.78% (43 runs sampled)
+Muxer#multiplex x 6.17 ops/sec ±2.05% (12 runs sampled)
+Muxer#uplex x 22.30 ops/sec ±23.97% (10 runs sampled)
 Fastest is Muxer#uplex
 ```
 
-Big chunks:
+Small chunks:
 ```
-Muxer#spdy x 8.47 ops/sec ±1.89% (43 runs sampled)
-Muxer#multiplex x 6.19 ops/sec ±2.08% (12 runs sampled)
-Muxer#uplex x 22.00 ops/sec ±26.48% (9 runs sampled)
+Muxer#spdy x 8.00 ops/sec ±2.29% (41 runs sampled)
+Muxer#multiplex x 6.26 ops/sec ±4.13% (34 runs sampled)
+Muxer#uplex x 12.29 ops/sec ±0.93% (34 runs sampled)
 Fastest is Muxer#uplex
 ```

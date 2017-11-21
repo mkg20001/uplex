@@ -84,6 +84,7 @@ map(require('../test/ids.json'), PeerId.createFromJSON, (e, ids) => {
       })
       .on('complete', function () {
         console.log('Fastest is ' + this.filter('fastest').map('name'))
+        process.exit(0)
       })
       // run async
       .run({
