@@ -26,7 +26,10 @@ So... why not make a simple pull-stream first, protocol-buffers, double-side mul
   - Stops the multiplexer
   - `force`: Boolean to force-close even with open connections
   - Returns `undefined`
-  - Throws if there are open connections and `force` is false  
+  - Throws if there are open connections and `force` is false
+
+`.on('conn', conn => {})`:
+  - Event that gets emitted when the other side creates a duplex
 
 # Benchmarks (run `node bench`)
 Small chunks:

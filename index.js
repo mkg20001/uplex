@@ -144,7 +144,7 @@ class Uplex extends EE {
     case 0x01: // duplex event
       log("accepting duplex", data.id)
 
-      this.emit("new_conn", new DuplexConn(this, data.id, true))
+      this.emit("conn", new DuplexConn(this, data.id, true))
 
       while (delta(data.id, this.id) < 100000) {
         log("WARN", "increasing id seed to avoid collision (delta(theirs, ours) < 100000)")

@@ -12,7 +12,7 @@ class UplexMuxer extends EE {
     this.uplex = uplex(conn)
     this.raw = conn
 
-    this.uplex.on("new_conn", new_conn => this.emit("stream", new Connection(new_conn, conn)))
+    this.uplex.on("conn", new_conn => this.emit("stream", new Connection(new_conn, conn)))
   }
 
   newStream(cb) {
