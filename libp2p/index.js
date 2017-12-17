@@ -1,7 +1,7 @@
 'use strict'
 
 const EE = require('events').EventEmitter
-const uplex = require('../')
+const uplex = require('../src')
 const Connection = require('interface-connection').Connection
 const setImmediate = require('async/setImmediate')
 const noop = () => {}

@@ -53,6 +53,7 @@ describe('µplex', () => {
       )
     })
   })
+  
   it('should correctly recieve the data', cb => {
     setup((from, to) => {
       const v = [Buffer.from('HELLO W0RLD')]
@@ -72,6 +73,7 @@ describe('µplex', () => {
       )
     })
   })
+
   it('should correctly send data back and forth', cb => {
     setup((from, to) => {
       const v = [Buffer.from('HELLO W0RLD')]
