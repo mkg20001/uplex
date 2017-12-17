@@ -1,21 +1,21 @@
-"use strict"
+'use strict'
 
-const EE = require("events").EventEmitter
-const uplex = require("../")
+const EE = require('events').EventEmitter
+const uplex = require('../')
 const Connection = require('interface-connection').Connection
 const setImmediate = require('async/setImmediate')
 const noop = () => {}
 
 class UplexMuxer extends EE {
-  constructor(conn) {
+  constructor (conn) {
     super()
     this.uplex = uplex(conn)
     this.raw = conn
 
-    this.uplex.on("conn", new_conn => this.emit("stream", new Connection(new_conn, conn)))
+    this.uplex.on('conn', new_conn => this.emit('stream', new Connection(new_conn, conn)))
   }
 
-  newStream(cb) {
+  newStream (cb) {
     cb = cb || noop
     const conn = new Connection(this.uplex.createConnection(), this.raw)
     setImmediate(() => cb(null, conn))
@@ -28,9 +28,9 @@ class UplexMuxer extends EE {
   }
 }
 
-const muxer = (conn /*, isListener*/ ) => new UplexMuxer(conn)
+const muxer = (conn /*, isListener */) => new UplexMuxer(conn)
 module.exports = {
   dialer: muxer,
   listener: muxer,
-  multicodec: "/uplex/1.0.0"
+  multicodec: '/uplex/1.0.0'
 }

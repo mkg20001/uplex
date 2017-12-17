@@ -1,85 +1,85 @@
-"use strict"
+'use strict'
 
-const EE = require("events").EventEmitter
+const EE = require('events').EventEmitter
 
-const proto = require("./proto").Packet
-const ppb = require("pull-protocol-buffers")
-const pull = require("pull-stream")
+const proto = require('./proto').Packet
+const ppb = require('pull-protocol-buffers')
+const pull = require('pull-stream')
 
 const delta = (a, b) => a - b === 0 ? 0 : a - b < 0 ? b - a : a - b
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
-const debug = require("debug")
-const log = debug("uplex")
+const debug = require('debug')
+const log = debug('uplex')
 
-const looper = require("pull-looper")
+const looper = require('pull-looper')
 
-const GUESS = 10000000000 //just a random number I guess is high enough to never collide. additionally the id-seed gets adjusted if a collision is near
+const GUESS = 10000000000 // just a random number I guess is high enough to never collide. additionally the id-seed gets adjusted if a collision is near
 
-const Pushable = require("pull-pushable")
+const Pushable = require('pull-pushable')
 
 class Queue extends EE {
-  constructor() {
+  constructor () {
     super()
     this.q = []
   }
-  _handle(cb, data) {
+  _handle (cb, data) {
     cb(data)
   }
-  get(cb) {
+  get (cb) {
     const q = this.q
     if (q.length) return this._handle(cb, this.q.shift())
-    else this.once("data", () => this._handle(cb, this.q.shift()))
+    else this.once('data', () => this._handle(cb, this.q.shift()))
   }
-  push(data) {
+  push (data) {
     this.q.push(data)
-    this.emit("data")
+    this.emit('data')
   }
 }
 
 class DataQueue extends Queue {
-  constructor() {
+  constructor () {
     super()
     this.q = []
   }
-  _handle(cb, data) {
+  _handle (cb, data) {
     cb(data.end, data.data)
   }
-  get(end, cb) {
+  get (end, cb) {
     const q = this.q
-    if (end) return cb(end) //TODO: cleanup on end. TODO: handle reverse sink (aka abort the source)
+    if (end) return cb(end) // TODO: cleanup on end. TODO: handle reverse sink (aka abort the source)
     if (q.length) return this._handle(cb, this.q.shift())
-    else this.once("data", () => this._handle(cb, this.q.shift()))
+    else this.once('data', () => this._handle(cb, this.q.shift()))
   }
-  push(end, data) {
+  push (end, data) {
     this.q.push({
       end,
       data
     })
-    this.emit("data")
+    this.emit('data')
   }
 }
 
 class SourceConn {
-  constructor(state, id) {
+  constructor (state, id) {
     this.state = state
     this.id = id
     this.q = new DataQueue()
     this.source = this.q.get.bind(this.q)
     state._listen(id, this.q.push.bind(this.q))
 
-    log("creating source", this.id)
+    log('creating source', this.id)
   }
 }
 
 class SinkConn {
-  constructor(state, id) {
+  constructor (state, id) {
     this.state = state
     this.id = id
     this.sink = this.sink.bind(this)
 
-    log("creating sink", this.id)
+    log('creating sink', this.id)
   }
-  sink(read) {
+  sink (read) {
     const next = (end, data) => {
       this.state._emit(this.id, end, data)
       if (end) return
@@ -90,13 +90,13 @@ class SinkConn {
 }
 
 class DuplexConn {
-  constructor(state, id, inv) {
+  constructor (state, id, inv) {
     this.state = state
     this.id = id
     this.id_source = id + (inv ? 2 : 1)
     this.id_sink = id + (inv ? 1 : 2)
 
-    log("creating duplex", this.id)
+    log('creating duplex', this.id)
 
     this._source = new SourceConn(state, this.id_source)
     this._sink = new SinkConn(state, this.id_sink)
@@ -106,7 +106,7 @@ class DuplexConn {
       looper
     )
     this.sink = pull(
-      //TODO: add chunker here
+      // TODO: add chunker here
       looper,
       this._sink.sink.bind(this)
     )
@@ -114,7 +114,7 @@ class DuplexConn {
 }
 
 class Uplex extends EE {
-  constructor() {
+  constructor () {
     super()
 
     this.id = rand(1, GUESS)
@@ -135,49 +135,51 @@ class Uplex extends EE {
       read(null, next)
     }
   }
-  handle(end, data) {
-    if (data) switch (data.state) {
-    case 0x00: // data event
-      this._localEmit(data.id, null, data.data)
-      break;
-    case 0x01: // duplex event
-      log("accepting duplex", data.id)
+  handle (end, data) {
+    if (data) {
+      switch (data.state) {
+        case 0x00: // data event
+          this._localEmit(data.id, null, data.data)
+          break
+        case 0x01: // duplex event
+          log('accepting duplex', data.id)
 
-      this.emit("conn", new DuplexConn(this, data.id, true))
+          this.emit('conn', new DuplexConn(this, data.id, true))
 
-      while (delta(data.id, this.id) < 100000) {
-        log("WARN", "increasing id seed to avoid collision (delta(theirs, ours) < 100000)")
-        this.id = rand(1, GUESS)
+          while (delta(data.id, this.id) < 100000) {
+            log('WARN', 'increasing id seed to avoid collision (delta(theirs, ours) < 100000)')
+            this.id = rand(1, GUESS)
+          }
+          break
+        case 0x02: // end event
+          if (data.data && data.data.length) this._localEmit(data.id, null, data.data)
+          this._localEmit(data.id, true, null)
+          break
       }
-      break;
-    case 0x02: // end event
-      if (data.data && data.data.length) this._localEmit(data.id, null, data.data)
-      this._localEmit(data.id, true, null)
-      break;
     }
   }
-  _emit(id, end, data) {
+  _emit (id, end, data) {
     if (end) this.pushOut(id, 0x02, data)
     else this.pushOut(id, 0x00, data)
   }
-  _listen(id, cb) {
-    log("listen", id)
+  _listen (id, cb) {
+    log('listen', id)
     this.listen[id] = cb
   }
-  _localEmit(id, ...args) {
-    if (!this.listen[id]) return this.panic("Socket " + id + " isn't being listenened on!")
+  _localEmit (id, ...args) {
+    if (!this.listen[id]) return this.panic('Socket ' + id + " isn't being listenened on!")
     this.listen[id](...args)
   }
 
-  createConnection() {
+  createConnection () {
     const conn = new DuplexConn(this, this.id)
     this.pushOut(this.id, 0x01)
-    log("sending duplex", this.id)
+    log('sending duplex', this.id)
     this.id += 3
     return conn
   }
 
-  pushOut(id, state, data) {
+  pushOut (id, state, data) {
     this._push({id, state, data})
   }
 }

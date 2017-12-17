@@ -1,12 +1,12 @@
-"use strict"
+'use strict'
 
 const Benchmark = require('benchmark')
-const pull = require("pull-stream")
-const PeerInfo = require("peer-info")
+const pull = require('pull-stream')
+const PeerInfo = require('peer-info')
 
-const Libp2p = require("libp2p")
+const Libp2p = require('libp2p')
 
-const TCP = require("libp2p-tcp")
+const TCP = require('libp2p-tcp')
 
 const SPDY = require('libp2p-spdy')
 const MULTIPLEX = require('libp2p-multiplex')
@@ -17,9 +17,9 @@ const {
 } = require('async')
 const PeerId = require('peer-id')
 
-let suite = new Benchmark.Suite
+let suite = new Benchmark.Suite()
 
-const sample = process.env.TINY_CHUNKS ? ".".repeat(100).split("").map(() => Buffer.from("HELLO")) : [Buffer.from("HELLO".repeat(10000))]
+const sample = process.env.TINY_CHUNKS ? '.'.repeat(100).split('').map(() => Buffer.from('HELLO')) : [Buffer.from('HELLO'.repeat(10000))]
 
 map(require('../test/ids.json'), PeerId.createFromJSON, (e, ids) => {
   if (e) throw e
@@ -33,7 +33,7 @@ map(require('../test/ids.json'), PeerId.createFromJSON, (e, ids) => {
     name
   }, cb) => {
     const pi = new PeerInfo(global.id)
-    pi.multiaddrs.add("/ip4/127.0.0.1/tcp/" + port++)
+    pi.multiaddrs.add('/ip4/127.0.0.1/tcp/' + port++)
     const swarm = new Libp2p({
       transport: [
         new TCP()
@@ -43,8 +43,8 @@ map(require('../test/ids.json'), PeerId.createFromJSON, (e, ids) => {
         crypto: []
       }
     }, pi)
-    swarm.handle("/echo/1.0.0", (proto, conn) => pull(conn, conn))
-    swarm.handle("/blackhole/1.0.0", (proto, conn) => pull(pull.values([]), conn, pull.drain()))
+    swarm.handle('/echo/1.0.0', (proto, conn) => pull(conn, conn))
+    swarm.handle('/blackhole/1.0.0', (proto, conn) => pull(pull.values([]), conn, pull.drain()))
     swarm.start(err => {
       if (err) return cb(err)
       cb(null, {
@@ -56,19 +56,19 @@ map(require('../test/ids.json'), PeerId.createFromJSON, (e, ids) => {
   }
 
   map([{
-    name: "spdy",
+    name: 'spdy',
     muxer: SPDY
   }, {
-    name: "multiplex",
+    name: 'multiplex',
     muxer: MULTIPLEX
   }, {
-    name: "uplex",
+    name: 'uplex',
     muxer: UPLEX
   }], createLibp2pNode, (err, muxers) => {
     if (err) throw err
     muxers
-      .reduce((suite, muxer) => suite.add("Muxer#" + muxer.name, d => {
-        muxer.swarm.dial(muxer.swarm.peerInfo, "/echo/1.0.0", (err, conn) => {
+      .reduce((suite, muxer) => suite.add('Muxer#' + muxer.name, d => {
+        muxer.swarm.dial(muxer.swarm.peerInfo, '/echo/1.0.0', (err, conn) => {
           if (err) throw err
           pull(
             pull.values(sample.slice(0)),
@@ -91,5 +91,4 @@ map(require('../test/ids.json'), PeerId.createFromJSON, (e, ids) => {
         'async': true
       })
   })
-
 })
