@@ -1,3 +1,5 @@
+/* eslint-env mocha */
+
 'use strict'
 
 const chai = require('chai')
@@ -27,9 +29,9 @@ const setup = cb => {
   const [conn, conn2] = duplex2()
   const m1 = uplex(conn)
   const m2 = uplex(conn2)
-  const data_conn = m1.createConnection()
+  const dataConn = m1.createConnection()
   m2.once('conn', conn => {
-    cb(data_conn, conn)
+    cb(dataConn, conn)
   })
 }
 
@@ -53,7 +55,7 @@ describe('µplex', () => {
       )
     })
   })
-  
+
   it('should correctly recieve the data', cb => {
     setup((from, to) => {
       const v = [Buffer.from('HELLO W0RLD')]

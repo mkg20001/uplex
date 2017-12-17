@@ -155,6 +155,8 @@ class Uplex extends EE {
           if (data.data && data.data.length) this._localEmit(data.id, null, data.data)
           this._localEmit(data.id, true, null)
           break
+        default:
+          log('WARN: Unknown state 0x%s sent', data.state.toString(16))
       }
     }
   }
