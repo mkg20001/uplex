@@ -43,5 +43,16 @@
   },
   "contributors": [
     "Maciej Krüger <mkg20001@gmail.com>"
-  ]
+  ],
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mkg20001/uplex.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mkg20001/uplex/issues"
+  },
+  "homepage": "https://github.com/mkg20001/uplex#readme"
 }
