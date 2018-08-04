@@ -99,4 +99,25 @@ describe('µplex', () => {
       )
     })
   })
+
+  it('should correctly abort', cb => {
+    setup((from, to) => {
+      const v = [Buffer.from('HELLO W0RLD'), Buffer.from('H0W AR3 Y0U')]
+      pull(
+        pull.values(v),
+        to,
+        pull.drain()
+      )
+      pull(
+        pull.values([]),
+        from,
+        pull.take(1),
+        pull.collect((err, res) => {
+          expect(err).to.not.exist()
+          assert.deepEqual(res, v.slice(0, 1))
+          cb()
+        })
+      )
+    })
+  })
 })
