@@ -2,8 +2,7 @@
 
 const EE = require('events').EventEmitter
 
-const proto = require('./proto').Packet
-const ppb = require('pull-protocol-buffers')
+const lp = require('pull-length-prefixed')
 const pull = require('pull-stream')
 
 const delta = (a, b) => a > b ? a - b : b - a
@@ -13,7 +12,7 @@ const log = debug('uplex')
 
 const looper = require('pull-looper')
 
-const GUESS = 10000000000 // just a random number I guess is high enough to never collide. additionally the id-seed gets adjusted if a collision is near
+const MAX_32 = Math.pow(2, 32) - 1
 
 const Pushable = require('pull-pushable')
 
@@ -117,7 +116,7 @@ class Uplex extends EE {
   constructor () {
     super()
 
-    this.id = rand(1, GUESS)
+    this.id = rand(1, MAX_32)
 
     this.uid = rand(1000, 9999)
 
@@ -135,28 +134,29 @@ class Uplex extends EE {
       read(null, next)
     }
   }
-  handle (end, data) {
-    if (data) {
-      switch (data.state) {
+  handle (end, msg) {
+    if (msg) {
+      const id = msg.readUInt32BE(1)
+      switch (msg.readUInt8(0)) {
         case 0x00: // data event
-          this._localEmit(data.id, null, data.data)
+          this._localEmit(id, null, msg.slice(9))
           break
         case 0x01: // duplex event
-          log('accepting duplex', data.id)
+          log('accepting duplex', id)
 
-          this.emit('conn', new DuplexConn(this, data.id, true))
+          this.emit('conn', new DuplexConn(this, id, true))
 
-          while (delta(data.id, this.id) < 100000) {
+          while (delta(id, this.id) < 100000) {
             log('WARN', 'increasing id seed to avoid collision (delta(theirs, ours) < 100000)')
-            this.id = rand(1, GUESS)
+            this.id = rand(1, MAX_32)
           }
           break
         case 0x02: // end event
-          if (data.data && data.data.length) this._localEmit(data.id, null, data.data)
-          this._localEmit(data.id, true, null)
+          if (msg.length > 9) this._localEmit(id, null, msg.slice(9))
+          this._localEmit(id, true, null)
           break
         default:
-          log('WARN: Unknown state 0x%s sent', data.state.toString(16))
+          log('WARN: Unknown state 0x%s sent', msg.readUInt8(0).toString(16))
       }
     }
   }
@@ -182,7 +182,14 @@ class Uplex extends EE {
   }
 
   pushOut (id, state, data) {
-    this._push({id, state, data})
+    let msg = Buffer.allocUnsafe(9)
+    msg.writeUInt8(state, 0)
+    msg.writeUInt32BE(id, 1)
+    if (data) {
+      this._push(Buffer.concat([msg, data]))
+    } else {
+      this._push(msg)
+    }
   }
 }
 
@@ -191,9 +198,9 @@ module.exports = (conn) => {
 
   pull(
     conn,
-    ppb.decode(proto),
+    lp.decode(),
     uplex,
-    ppb.encode(proto),
+    lp.encode(),
     conn
   )
 

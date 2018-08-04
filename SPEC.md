@@ -1,6 +1,8 @@
 # Packets
 
-## ID = Unique ID number (int64)
+`<VARINT length-prefix><8 STATE><32 BE ID>[<DATA>]`
+
+## ID = Unique ID number (int32)
 
 If one side issues a creation request (0x01) and the delta between the current id seed and the request id is less than 100.000, then the id seed is regenerated.
 
