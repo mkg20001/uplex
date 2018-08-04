@@ -25,20 +25,20 @@
   "license": "MIT",
   "dependencies": {
     "protons": "^1.0.1",
-    "pull-protocol-buffers": "^0.1.1",
-    "pull-pushable": "^2.1.1",
-    "pull-stream": "^3.6.1",
+    "pull-protocol-buffers": "^0.1.2",
+    "pull-pushable": "^2.2.0",
+    "pull-stream": "^3.6.8",
     "pull-looper": "^1.0.0"
   },
   "devDependencies": {
-    "aegir": "^12.2.0",
+    "aegir": "^15.1.0",
     "benchmark": "^2.1.4",
     "chai": "^4.1.2",
     "dirty-chai": "^2.0.1",
-    "libp2p": "^0.14.3",
-    "libp2p-multiplex": "^0.5.1",
-    "libp2p-spdy": "^0.11.0",
-    "libp2p-tcp": "^0.11.1",
+    "libp2p": "^0.23.0",
+    "libp2p-mplex": "^0.8.0",
+    "libp2p-spdy": "^0.12.1",
+    "libp2p-tcp": "^0.12.1",
     "pull-queue": "^0.1.4"
   }
 }

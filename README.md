@@ -26,18 +26,21 @@ I took a look at current multiplexers and found them to complicated. That's why.
   - Event that gets emitted when the other side creates a duplex
 
 # Benchmarks (run `node bench && TINY_CHUNKS=1 node bench`)
+
+Machine used: Ubuntu 16.04 amd64, Node v10.8.0, CPU AMD FX-6300
+
 Big chunks:
 ```
-Muxer#spdy x 8.45 ops/sec ±1.78% (43 runs sampled)
-Muxer#multiplex x 6.17 ops/sec ±2.05% (12 runs sampled)
-Muxer#uplex x 22.30 ops/sec ±23.97% (10 runs sampled)
+Muxer#spdy x 8.59 ops/sec ±1.22% (44 runs sampled)
+Muxer#mplex x 4.31 ops/sec ±2.11% (15 runs sampled)
+Muxer#uplex x 21.78 ops/sec ±1.21% (30 runs sampled)
 Fastest is Muxer#uplex
 ```
 
 Small chunks:
 ```
-Muxer#spdy x 8.00 ops/sec ±2.29% (41 runs sampled)
-Muxer#multiplex x 6.26 ops/sec ±4.13% (34 runs sampled)
-Muxer#uplex x 12.29 ops/sec ±0.93% (34 runs sampled)
+Muxer#spdy x 7.52 ops/sec ±2.44% (40 runs sampled)
+Muxer#mplex x 4.54 ops/sec ±5.64% (26 runs sampled)
+Muxer#uplex x 13.67 ops/sec ±1.24% (65 runs sampled)
 Fastest is Muxer#uplex
 ```

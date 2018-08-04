@@ -6,7 +6,7 @@ const proto = require('./proto').Packet
 const ppb = require('pull-protocol-buffers')
 const pull = require('pull-stream')
 
-const delta = (a, b) => a - b === 0 ? 0 : a - b < 0 ? b - a : a - b
+const delta = (a, b) => a > b ? a - b : b - a
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
 const debug = require('debug')
 const log = debug('uplex')

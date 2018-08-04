@@ -12,7 +12,7 @@ class UplexMuxer extends EE {
     this.uplex = uplex(conn)
     this.raw = conn
 
-    this.uplex.on('conn', new_conn => this.emit('stream', new Connection(new_conn, conn)))
+    this.uplex.on('conn', newConn => this.emit('stream', new Connection(newConn, conn)))
   }
 
   newStream (cb) {
@@ -28,7 +28,8 @@ class UplexMuxer extends EE {
   }
 }
 
-const muxer = (conn /*, isListener */) => new UplexMuxer(conn)
+const muxer = (conn, isListener) => new UplexMuxer(conn)
+
 module.exports = {
   dialer: muxer,
   listener: muxer,
