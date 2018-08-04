@@ -93,13 +93,13 @@ class DuplexConn {
   constructor (state, id, inv) {
     this.state = state
     this.id = id
-    this.id_source = id + (inv ? 2 : 1)
-    this.id_sink = id + (inv ? 1 : 2)
+    this.idSource = id + (inv ? 2 : 1)
+    this.idSink = id + (inv ? 1 : 2)
 
     log('creating duplex', this.id)
 
-    this._source = new SourceConn(state, this.id_source)
-    this._sink = new SinkConn(state, this.id_sink)
+    this._source = new SourceConn(state, this.idSource)
+    this._sink = new SinkConn(state, this.idSink)
 
     this.source = pull(
       this._source.source.bind(this),
