@@ -40,5 +40,8 @@
     "libp2p-spdy": "~0.12.1",
     "libp2p-tcp": "~0.12.1",
     "pull-queue": "~0.1.4"
-  }
+  },
+  "contributors": [
+    "Maciej Krüger <mkg20001@gmail.com>"
+  ]
 }
