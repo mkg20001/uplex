@@ -2,7 +2,7 @@
 
 ## ID = Unique ID number (int64)
 
-If one side issues a creation request (0x01) and the delta between the current id seed and the request id is less than 100,000 than the id seed is regenerated.
+If one side issues a creation request (0x01) and the delta between the current id seed and the request id is less than 100.000, then the id seed is regenerated.
 
 ## State =
  ID  | Description

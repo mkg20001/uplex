@@ -25,6 +25,10 @@ I took a look at current multiplexers and found them to complicated. That's why.
 `.on('conn', conn => {})`:
   - Event that gets emitted when the other side creates a duplex
 
+# Libp2p integration
+
+Simply require `uplex/libp2p` and add it under `connection.streamMuxer`
+
 # Benchmarks (run `node bench && TINY_CHUNKS=1 node bench`)
 
 Machine used: Ubuntu 16.04 amd64, Node v10.8.0, CPU AMD FX-6300
