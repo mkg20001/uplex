@@ -4,13 +4,7 @@ Tiny, fast multiplexer
 
 # Why?
 
-Currently multiplexers have a lot of code that is used for chunking and other operations.
-But most apps today have a layer of encryption above them.
-So the Internet Protocol doesn't care whether you chunk your stuff or not.
-And crypto protects you from MITM attacks so checksums are also unnecesarry.
-Additionally for some reason the server can't open sockets via the multiplexer, only the client.
-
-So... why not make a simple pull-stream first, protocol-buffers, double-side multiplexer
+I took a look at current multiplexers and found them to complicated. That's why.
 
 # API
 `uplex(conn)`:
