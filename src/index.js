@@ -2,7 +2,6 @@
 
 const EE = require('events').EventEmitter
 
-const lp = require('pull-length-prefixed')
 const pull = require('pull-stream')
 
 const delta = (a, b) => a > b ? a - b : b - a
@@ -126,37 +125,92 @@ class Uplex extends EE {
     this._push = this.source.push.bind(this.source)
 
     this.sink = read => {
+      let msg
+      let cached = Buffer.allocUnsafe(0)
       const next = (end, data) => {
-        this.handle(end, data)
         if (end) return
+        if (cached.length) data = Buffer.concat([cached, data])
+        let decoded = []
+        while (data && data.length) {
+          if (!msg) msg = {s: 0}
+          switch (msg.s) {
+            case 0:
+              msg.state = data.readUInt8(0)
+              data = data.slice(1)
+              msg.s++
+              break
+            case 1:
+              if (data.length < 8) {
+                cached = data
+                data = null
+                break
+              }
+              msg.id = data.readUInt32BE(0)
+              data = data.slice(8)
+              if (!msg.state) {
+                msg.s++
+              } else {
+                decoded.push(msg)
+                msg = null
+              }
+              break
+            case 2:
+              if (data.length < 8) {
+                cached = data
+                data = null
+                break
+              }
+              msg.dlen = data.readUInt32BE(0)
+              data = data.slice(8)
+              if (msg.dlen) {
+                msg.s++
+              } else {
+                msg.data = Buffer.allocUnsafe(0)
+                decoded.push(msg)
+                msg = null
+              }
+              break
+            case 3:
+              if (data.length < msg.dlen) {
+                cached = data
+                data = null
+                break
+              }
+              msg.data = data.slice(0, msg.dlen)
+              data = data.slice(msg.dlen)
+              decoded.push(msg)
+              msg = null
+              break
+            default: throw new Error('Parser Error')
+          }
+        }
+        decoded.forEach((msg) => this.handle(msg))
         read(null, next)
       }
       read(null, next)
     }
   }
-  handle (end, msg) {
+  handle (msg) {
     if (msg) {
-      const id = msg.readUInt32BE(1)
-      switch (msg.readUInt8(0)) {
+      switch (msg.state) {
         case 0x00: // data event
-          this._localEmit(id, null, msg.slice(9))
+          this._localEmit(msg.id, null, msg.data)
           break
         case 0x01: // duplex event
-          log('accepting duplex', id)
+          log('accepting duplex', msg.id)
 
-          this.emit('conn', new DuplexConn(this, id, true))
+          this.emit('conn', new DuplexConn(this, msg.id, true))
 
-          while (delta(id, this.id) < 100000) {
+          while (delta(msg.id, this.id) < 100000) {
             log('WARN', 'increasing id seed to avoid collision (delta(theirs, ours) < 100000)')
             this.id = rand(1, MAX_32)
           }
           break
         case 0x02: // end event
-          if (msg.length > 9) this._localEmit(id, null, msg.slice(9))
-          this._localEmit(id, true, null)
+          this._localEmit(msg.id, true, null)
           break
         default:
-          log('WARN: Unknown state 0x%s sent', msg.readUInt8(0).toString(16))
+          log('WARN: Unknown state 0x%s sent', msg.state.toString(16))
       }
     }
   }
@@ -186,7 +240,9 @@ class Uplex extends EE {
     msg.writeUInt8(state, 0)
     msg.writeUInt32BE(id, 1)
     if (data) {
-      this._push(Buffer.concat([msg, data]))
+      let len = Buffer.allocUnsafe(8)
+      len.writeUInt32BE(data.length)
+      this._push(Buffer.concat([msg, len, data]))
     } else {
       this._push(msg)
     }
@@ -198,9 +254,7 @@ module.exports = (conn) => {
 
   pull(
     conn,
-    lp.decode(),
     uplex,
-    lp.encode(),
     conn
   )
 
